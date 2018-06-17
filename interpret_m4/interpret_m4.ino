@@ -2,10 +2,14 @@
    similar to myforth's Standalone Interpreter
    This example code is in the public domain */
 
-/* Sat 12 May 04:30:48 UTC 2018 */
+// Sun 17 Jun 03:03:26 UTC 2018
+// 4737-a3a-0ca-
 
-/* old timestamp:
-   Sun Feb 26 04:53:32 UTC 2017 */
+// No changes - runs well on ItsyBitsy M4 during brief testing.
+
+// prev:
+/* Sat 12 May 04:30:48 UTC 2018 */
+/* Sun Feb 26 04:53:32 UTC 2017 */
 
 /* added: tick, EXECUTE by Chris_H */
 /* correction to locate() by skiphs May 2018 */
