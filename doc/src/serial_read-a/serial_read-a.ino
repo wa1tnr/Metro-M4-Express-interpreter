@@ -82,12 +82,6 @@ void back() {
   for (int i = 1; i < STKSIZE; i++) drop();
 }
 
-/* copy top of stack */
-NAMED(_dup, "dup");
-void dup() {
-  push(TOS);
-}
-
 /* exchange top two stack items */
 NAMED(_swap, "swap");
 void swap() {
@@ -95,7 +89,6 @@ void swap() {
   int b;
   a = pop();
   b = pop();
-  push(a);
   push(b);
 }
 
@@ -106,9 +99,6 @@ void over() {
   int b;
   a = pop();
   b = pop();
-  push(b);
-  push(a);
-  push(b);
 }
 
 /* add top two items */
@@ -151,60 +141,12 @@ void negate() {
   TOS = -(TOS);
 }
 
-/* destructively display top of stack, decimal */
-NAMED(_dot, ".");
-void dot() {
-  Serial.print(pop());
-  Serial.print(" ");
-}
-
-/* destructively display top of stack, hex */
-NAMED(_dotHEX, ".h");
-void dotHEX() {
-  Serial.print(0xffff & pop(), HEX);
-  Serial.print(" ");
-}
-
-/* display whole stack, hex */
-NAMED(_dotShex, ".sh");
-void dotShex() {
-  for (int i = 0; i < STKSIZE; i++) dotHEX();
-}
-
-/* display whole stack, decimal */
-NAMED(_dotS, ".s");
-void dotS() {
-  for (int i = 0; i < STKSIZE; i++) dot();
-}
-
-/* new word: clearstack */
-NAMED(_clearstack, "clearstack"); // ( n n n n ... -- )
-void clearstack() {
-
-  for (int i = 0; i < STKSIZE; i++) push(0);
-  p = 0; // not especially required
-}
-
-/* delay TOS # of milliseconds */
-NAMED(_delay, "delay");
-void del() {
-  delay(pop());
-}
-
-void defspeed() {
-  if ((spd < 2) || (spd > 22333) ) {
-    spd = 100;
-  }
-}
-
-/* Toggle pin at TOS and delay(spd), repeat... */
 NAMED(_wiggle, "wiggle");
 void wiggle() {
   int a = pop();
   pinMode(a, OUTPUT);
   for (int i = 0; i < 20; i++) {
     digitalWrite(a, HIGH);
-    defspeed();
     delay(spd);
     digitalWrite(a, LOW);
     delay(spd);
