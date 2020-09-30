@@ -104,67 +104,6 @@ void over() {
   b = pop();
 }
 
-/* add top two items */
-NAMED(_add, "+");
-void add() {
-  int a = pop();
-  TOS = a + TOS;
-}
-
-/* bitwise and top two items */
-NAMED(_and, "and");
-void and_() {
-  int a = pop();
-  TOS = a & TOS;
-}
-
-/* inclusive or top two items */
-NAMED(_or, "or");
-void or_() {
-  int a = pop();
-  TOS = a | TOS;
-}
-
-/* exclusive or top two items */
-NAMED(_xor, "xor");
-void xor_() {
-  int a = pop();
-  TOS = a ^ TOS;
-}
-
-/* invert all bits in top of stack */
-NAMED(_invert, "invert");
-void invert() {
-  TOS = ~(TOS);
-}
-
-/* negate top of stack */
-NAMED(_negate, "negate");
-void negate() {
-  TOS = -(TOS);
-}
-
-NAMED(_wiggle, "wiggle");
-void wiggle() {
-  int a = pop();
-  pinMode(a, OUTPUT);
-  for (int i = 0; i < 20; i++) {
-    digitalWrite(a, HIGH);
-    delay(spd);
-    digitalWrite(a, LOW);
-    delay(spd);
-  }
-}
-
-NAMED(_low, "low");
-void low() {
-  digitalWrite(pop(), LOW);
-}
-
-/* everybody loves a nop */
-NAMED(_nopp, "nop");
-void nopp() { } // pad the dictionary
-
 char ch;
 
 void ok() {
@@ -244,7 +183,7 @@ void runword(void) {
 void setup() {
   Serial.begin(38400);
   while (!Serial);
-  Serial.println ("rev 30 Sep aac 2e0");
+  Serial.println ("rev 30 Sep aac 2e2");
   Serial.println ("Forth-like interpreter:");
   Serial.println();
 }
