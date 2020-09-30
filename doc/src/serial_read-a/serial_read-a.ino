@@ -211,121 +211,14 @@ void wiggle() {
   }
 }
 
-/* TOS is pin number, set it HIGH */
-NAMED(_high, "high");
-void high() {
-  digitalWrite(pop(), HIGH);
-}
-
-/* set TOS pin LOW */
 NAMED(_low, "low");
 void low() {
   digitalWrite(pop(), LOW);
 }
 
-/* read TOS pin */
-NAMED(_in, "in");
-void in() {
-  TOS = digitalRead(TOS);
-}
-
-/* make TOS pin an input */
-NAMED(_input, "input");
-void input() {
-  pinMode(pop(), INPUT);
-}
-
-/* make TOS pin an output */
-NAMED(_output, "output");
-void output() {
-  pinMode(pop(), OUTPUT);
-}
-
-/* make TOS pin an input with weak pullup */
-NAMED(_input_pullup, "input_pullup");
-void input_pullup() {
-  pinMode(pop(), INPUT_PULLUP);
-}
-
-/* dump 16 bytes of RAM in hex with ascii on the side */
-void dumpRAM() {
-  char buffer[5] = "";
-  char *ram;
-  int p = pop();
-  ram = (char*)p;
-  sprintf(buffer, "%4x", p);
-  Serial.print(buffer);
-  Serial.print("   ");
-  for (int i = 0; i < 16; i++) {
-    char c = *ram++;
-    sprintf(buffer, " %2x", (c & 0xff));
-    Serial.print(buffer);
-  }
-  ram = (char*)p;
-  Serial.print("   ");
-  for (int i = 0; i < 16; i++) {
-    buffer[0] = *ram++;
-    if (buffer[0] > 0x7f || buffer[0] < ' ') buffer[0] = '.';
-    buffer[1] = '\0';
-    Serial.print(buffer);
-  }
-  push(p + 16);
-}
-
-/* dump 256 bytes of RAM */
-NAMED(_dumpr, "dump");
-void rdumps() {
-  for (int i = 0; i < 16; i++) {
-    Serial.println();
-    dumpRAM();
-  }
-}
-
-/* End of Forth interpreter words */
-/* ******************************************** */
-/* Beginning of application words */
-
-
-// yours here ;)
-
-
-/* End of application words */
-/* ******************************************** */
-/* Now build the dictionary */
-
 /* everybody loves a nop */
 NAMED(_nopp, "nop");
 void nopp() { } // pad the dictionary
-
-/* empty words don't cause an error */
-// NAMED(_nop, " ");
-// void nop() { }
-
-/* new word: throw */
-// NAMED(_throw, "throw");
-// void throw_();
-
-// NAMED(_execadrs, "execadrs");
-// void execadrs(); // execute at address
-
-// NAMED(_execXT, "execxt"); // execute from an xt (execution token) lookup
-// void execXT();
-
-// NAMED(_xtTOword, "xt>word");
-// void xtTOword();
-
-// NAMED(_EXECUTE, "EXECUTE"); // ( xt -- ) action: execute
-// void EXECUTE(); // ( xt -- ) action: execute
-
-NAMED(_xxt, "xxt"); // alias for EXECUTE - execute execution token
-void xxt();
-
-/* Forward declaration required here */
-NAMED(_words, "words");
-void words();
-
-// NAMED(_entries_, "entries");
-// void _entries();
 
 /* table of names and function addresses in flash */
 const entry dictionary[] = {
@@ -335,99 +228,6 @@ const entry dictionary[] = {
 
 /* Number of words in the dictionary */
 const int entries = sizeof dictionary / sizeof dictionary[0];
-
-void xtTOadrs() { // ( xt -- addrs )
-  func function;
-  int plc = pop();
-  unsigned int adxrs;
-  function = (func) pgm_read_word(&dictionary[plc].function);
-  push((unsigned int) function);
-  int a = pop();
-  push(a - 1);
-}
-
-void execadrs() { // ( adrs -- ) action: execute at adrs
-  int a = pop();  // an address of a word's execution token
-  push(a + 1);    // alignment - THUMB2 consequence per C.H. Ting, iirc - 30 Sep 2020
-  func function = ((func) pop());
-  function();
-  // fix bottom of stack so that
-  // adrs is reusable, with 'back EXECUTE':
-  back(); push(1); negate(); add(); drop();
-  // starts to look like forth, doesn't it.
-}
-
-// execute from an xt (execution token) lookup
-void execXT() { // ( xt -- ) action: execute    XT exec - the EXECUTE word
-  xtTOadrs();  // ( xt -- addrs )
-  execadrs();  // ( adrs -- ) action: execute at adrs
-}
-
-void EXECUTE() { // ( xt -- ) action: execute
-  execXT();
-}
-
-/* short alias for EXECUTE:  xxt 'execute execution token' */
-void xxt() {
-  execXT();
-}
-
-/* Display all words in dictionary */
-void words() {
-  for (int i = entries - 1; i >= 0; i--) {
-    strcpy(namebuf, dictionary[i].name);
-    Serial.print(namebuf);
-    Serial.print(" ");
-  }
-}
-
-/* How many words are in the dictionary? */
-void _entries() {
-  int a;
-  a = entries;
-  push(a);
-}
-
-void throw_() {
-  Serial.print("\r\n        THROW:  -1 \r\n");
-}
-
-/* Find an xt of a word in the dictionary, returning its name */
-void xtTOword() { // ( xt -- ) print: the words's name from the dictionary
-  int i = pop();
-  int j = entries - 1;
-  if ( i < 0 or i > j ) { // bounds checking please
-    throw_();
-    return;
-  }
-  strcpy(namebuf, dictionary[i].name);
-  Serial.print(namebuf);
-  Serial.print(" ");
-}
-
-/* Find a word in the dictionary, returning its position */
-int locate() {
-  for (int i = entries - 1; i >= 0; i--) {
-    strcpy(namebuf, dictionary[i].name);
-    if (!strcmp(tib, namebuf)) return i;
-  }
-  return 0;
-}
-
-/* Is the word in tib a number? */
-int isNumber() {
-  char *endptr;
-  strtol(tib, &endptr, 0);
-  if (endptr == tib) return 0;
-  if (*endptr != '\0') return 0;
-  return 1;
-}
-
-/* Convert number in tib */
-int number() {
-  char *endptr;
-  return (int) strtol(tib, &endptr, 0);
-}
 
 char ch;
 
@@ -465,7 +265,7 @@ byte reading() {
   if (ch == '\r') return 0;
   if (ch == ' ') return 0;
   if (ch == '\010') { // backspace
-    if (pos == 0) throw_();
+    // if (pos == 0) throw_(); - error handler - see full version of this program
     tib[pos--] = 0;
     tib[pos] = 0;
     Serial.print(" ");
@@ -490,9 +290,7 @@ void readword() {
 /* Run a word via its name */
 /* support xt and tick */
 void runword() {
-  // int place = locate();
   ok();
-  // push(number());
   // Serial.println("?");
 }
 
