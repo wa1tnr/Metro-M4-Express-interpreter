@@ -23,7 +23,6 @@ const int STKMASK = 7;
 int stack[STKSIZE];
 int p = 0;
 
-int tickstate = 0; // used to differentiate keyboard input after a tick
 int crlfstate = 0; // differentiate when ascii 13 is entered to the terminal
 
 /* TOS is Top Of Stack */
@@ -57,9 +56,8 @@ void xtTOadrs();
 
 /* new word: tick */
 NAMED(_tick, "\'");
-void tick() {
-  tickstate = -1; // true: tickstate flag has been raised
-}
+
+void tick() { } // unused fcn 30 sep
 
 /* Global delay timer */
 int spd = 44;
@@ -439,23 +437,9 @@ void xtTOword() { // ( xt -- ) print: the words's name from the dictionary
   Serial.print(" ");
 }
 
-/* Find a word in the dictionary, returning its position */
-int locate() {
-  for (int i = entries - 1; i >= 0; i--) {
-    strcpy(namebuf, dictionary[i].name);
-    if (!strcmp(tib, namebuf)) return i;
-  }
-  return 0;
-}
-
-/* Is the word in tib a number? */
-int isNumber() {
-  char *endptr;
-  strtol(tib, &endptr, 0);
+/* dead code:
   if (endptr == tib) return 0;
-  if (*endptr != '\0') return 0;
-  return 1;
-}
+*/
 
 /* Convert number in tib */
 int number() {
@@ -524,22 +508,18 @@ void readword() {
 /* Run a word via its name */
 /* support xt and tick */
 void runword() {
-  int place = locate();
-  if (tickstate == -1) {
-    tickstate = 0;
+  int place = 0;
     push(place);
-    return;
-  }
   if ((place != 0) & (place < (entries - 1))) {
-    dictionary[place].function();
+    // dictionary[place].function();
     ok();
     return;
   }
-  if (isNumber()) {
+
     push(number());
     ok();
     return;
-  }
+
   Serial.println("?");
 }
 
@@ -547,6 +527,7 @@ void runword() {
 void setup() {
   Serial.begin(38400);
   while (!Serial);
+  Serial.println ("rev 30 Sep aaa");
   Serial.println ("Forth-like interpreter:");
   // words();
   Serial.println();
