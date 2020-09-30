@@ -23,6 +23,7 @@ const int STKMASK = 7;
 int stack[STKSIZE];
 int p = 0;
 
+int tickstate = 0; // used to differentiate keyboard input after a tick
 int crlfstate = 0; // differentiate when ascii 13 is entered to the terminal
 
 /* TOS is Top Of Stack */
@@ -56,8 +57,9 @@ void xtTOadrs();
 
 /* new word: tick */
 NAMED(_tick, "\'");
-
-void tick() { } // unused fcn 30 sep
+void tick() {
+  tickstate = -1; // true: tickstate flag has been raised
+}
 
 /* Global delay timer */
 int spd = 44;
@@ -176,7 +178,7 @@ void dotS() {
 }
 
 /* new word: clearstack */
-NAMED(_clearstack, "clearstack"); // ( n n n n ... -- ) 
+NAMED(_clearstack, "clearstack"); // ( n n n n ... -- )
 void clearstack() {
 
   for (int i = 0; i < STKSIZE; i++) push(0);
@@ -190,7 +192,9 @@ void del() {
 }
 
 void defspeed() {
-    if ((spd < 2) || (spd > 22333) ) { spd = 100; }
+  if ((spd < 2) || (spd > 22333) ) {
+    spd = 100;
+  }
 }
 
 /* Toggle pin at TOS and delay(spd), repeat... */
@@ -294,24 +298,24 @@ NAMED(_nopp, "nop");
 void nopp() { } // pad the dictionary
 
 /* empty words don't cause an error */
-NAMED(_nop, " ");
-void nop() { }
+// NAMED(_nop, " ");
+// void nop() { }
 
 /* new word: throw */
-NAMED(_throw, "throw");
-void throw_();
+// NAMED(_throw, "throw");
+// void throw_();
 
-NAMED(_execadrs, "execadrs");
-void execadrs(); // execute at address
+// NAMED(_execadrs, "execadrs");
+// void execadrs(); // execute at address
 
-NAMED(_execXT, "execxt"); // execute from an xt (execution token) lookup
-void execXT();
+// NAMED(_execXT, "execxt"); // execute from an xt (execution token) lookup
+// void execXT();
 
-NAMED(_xtTOword, "xt>word");
-void xtTOword();
+// NAMED(_xtTOword, "xt>word");
+// void xtTOword();
 
-NAMED(_EXECUTE, "EXECUTE"); // ( xt -- ) action: execute
-void EXECUTE(); // ( xt -- ) action: execute
+// NAMED(_EXECUTE, "EXECUTE"); // ( xt -- ) action: execute
+// void EXECUTE(); // ( xt -- ) action: execute
 
 NAMED(_xxt, "xxt"); // alias for EXECUTE - execute execution token
 void xxt();
@@ -320,48 +324,12 @@ void xxt();
 NAMED(_words, "words");
 void words();
 
-NAMED(_entries_, "entries");
-void _entries();
+// NAMED(_entries_, "entries");
+// void _entries();
 
 /* table of names and function addresses in flash */
 const entry dictionary[] = {
-  {_nop, nop},
-  {_throw, throw_},
-  {_xtTOword, xtTOword},
-  {_xtTOadrs, xtTOadrs},
-  {_execadrs, execadrs},
-  {_execXT, execXT},
-  {_EXECUTE, EXECUTE},
-  {_xxt, xxt},
-  {_words, words},
-  {_tick, tick},
-  {_entries_, _entries},
-  {_drop, drop},
-  {_dup, dup},
-  {_back, back},
-  {_swap, swap},
-  {_over, over},
-  {_add, add},
-  {_and, and_},
-  {_or, or_},
-  {_xor, xor_},
-  {_invert, invert},
-  {_negate, negate},
-  {_clearstack, clearstack},
-  {_dotS, dotS},
-  {_dotShex, dotShex},
-  {_dot, dot},
-  {_dotHEX, dotHEX},
-  {_delay, del},
-  {_high, high},
   {_low, low},
-  {_in, in},
-  {_input, input},
-  {_output, output},
-  {_input_pullup, input_pullup},
-  {_wiggle, wiggle},
-  {_dumpr, rdumps},
-  {_speed, speed},
   {_nopp, nopp} // to pad dictionary
 };
 
@@ -437,9 +405,23 @@ void xtTOword() { // ( xt -- ) print: the words's name from the dictionary
   Serial.print(" ");
 }
 
-/* dead code:
+/* Find a word in the dictionary, returning its position */
+int locate() {
+  for (int i = entries - 1; i >= 0; i--) {
+    strcpy(namebuf, dictionary[i].name);
+    if (!strcmp(tib, namebuf)) return i;
+  }
+  return 0;
+}
+
+/* Is the word in tib a number? */
+int isNumber() {
+  char *endptr;
+  strtol(tib, &endptr, 0);
   if (endptr == tib) return 0;
-*/
+  if (*endptr != '\0') return 0;
+  return 1;
+}
 
 /* Convert number in tib */
 int number() {
@@ -508,26 +490,17 @@ void readword() {
 /* Run a word via its name */
 /* support xt and tick */
 void runword() {
-  int place = 0;
-    push(place);
-  if ((place != 0) & (place < (entries - 1))) {
-    // dictionary[place].function();
-    ok();
-    return;
-  }
-
-    push(number());
-    ok();
-    return;
-
-  Serial.println("?");
+  // int place = locate();
+  ok();
+  // push(number());
+  // Serial.println("?");
 }
 
 /* Arduino main setup and loop */
 void setup() {
   Serial.begin(38400);
   while (!Serial);
-  Serial.println ("rev 30 Sep aaa");
+  Serial.println ("rev 30 Sep aab");
   Serial.println ("Forth-like interpreter:");
   // words();
   Serial.println();
