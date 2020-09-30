@@ -5,13 +5,15 @@
    similar to myforth's Standalone Interpreter
    This example code is in the public domain */
 
-typedef void (*func)(void);         // signature of functions in dictionary
+// typedef void (*func)(void);         // signature of functions in dictionary
 
 /* Structure of a dictionary entry */
+/*
 typedef struct {
   const char*    name;              // Pointer the Word Name in flash
   const func     function;          // Pointer to function
 } entry;
+*/
 
 /* Data stack for parameter passing
    This "stack" is circular,
@@ -32,7 +34,8 @@ int crlfstate = 0; // differentiate when ascii 13 is entered to the terminal
 #define NAMED(x, y) const char x[]=y
 
 /* Terminal Input Buffer for interpreter */
-const byte maxtib = 16;
+// const byte maxtib = 16;
+const byte maxtib = 128;
 char tib[maxtib];
 /* buffer required for strings read from flash */
 char namebuf[maxtib];
@@ -162,15 +165,6 @@ void low() {
 NAMED(_nopp, "nop");
 void nopp() { } // pad the dictionary
 
-/* table of names and function addresses in flash */
-const entry dictionary[] = {
-  {_low, low},
-  {_nopp, nopp} // to pad dictionary
-};
-
-/* Number of words in the dictionary */
-const int entries = sizeof dictionary / sizeof dictionary[0];
-
 char ch;
 
 void ok() {
@@ -212,6 +206,7 @@ byte reading() {
   if (ch == '\r') return 0;
   if (ch == ' ') return 0;
   if (ch == '\010') { // backspace
+    // Serial.println("DEBUG: backspace encountered.");
     // if (pos == 0) throw_(); - error handler - see full version of this program
     tib[pos--] = 0;
     tib[pos] = 0;
@@ -226,6 +221,11 @@ byte reading() {
   return 1;
 }
 
+void print_tib(void) {
+    // namebuf = tib[0];
+    Serial.println(tib);
+}
+
 /* Block on reading the command line from serial port */
 /* then echo each word */
 void readword() {
@@ -234,18 +234,24 @@ void readword() {
   while (reading());
 }
 
+void runword(void) {
+  Serial.println("\n  You typed this: ");
+  print_tib();
+  ok();
+}
+
 /* Arduino main setup and loop */
 void setup() {
   Serial.begin(38400);
   while (!Serial);
-  Serial.println ("rev 30 Sep aac 2b");
+  Serial.println ("rev 30 Sep aac 2e0");
   Serial.println ("Forth-like interpreter:");
   Serial.println();
 }
 
 void loop() {
   readword();
-  ok(); // runword();
+  runword();
 }
 // revised: 30 September 2020
 // END.
