@@ -1,28 +1,10 @@
+// Wed Sep 30 10:26:45 UTC 2020
+// 4737-a3a-0ca-
+
 /* Tiny interpreter,
    similar to myforth's Standalone Interpreter
    This example code is in the public domain */
 
-// Sun 17 Jun 03:03:26 UTC 2018
-// 4737-a3a-0ca-
-
-// No changes - runs well on ItsyBitsy M4 during brief testing.
-
-// prev:
-/* Sat 12 May 04:30:48 UTC 2018 */
-/* Sun Feb 26 04:53:32 UTC 2017 */
-
-/* added: tick, EXECUTE by Chris_H */
-/* correction to locate() by skiphs May 2018 */
-
-/* Structure of a dictionary entry */
-/* old:
-  typedef struct {
-  const char *name;
-  void (*function)();
-  } entry;
-*/
-
-/* new typedef:  (in support of new xt>adrs word) */
 typedef void (*func)(void);         // signature of functions in dictionary
 
 /* Structure of a dictionary entry */
@@ -41,12 +23,8 @@ const int STKMASK = 7;
 int stack[STKSIZE];
 int p = 0;
 
-/* new declaration: tickstate */
 int tickstate = 0; // used to differentiate keyboard input after a tick
-
-/* new declaration: crlfstate */
 int crlfstate = 0; // differentiate when ascii 13 is entered to the terminal
-
 
 /* TOS is Top Of Stack */
 #define TOS stack[p]
@@ -84,7 +62,6 @@ void tick() {
 }
 
 /* Global delay timer */
-// int spd = 100; // 15;
 int spd = 44;
 
 /* top of stack becomes current spd */
@@ -204,8 +181,6 @@ void dotS() {
 NAMED(_clearstack, "clearstack"); // ( n n n n ... -- ) 
 void clearstack() {
 
-//  (8 is the STKSIZE in the reference program)
-
   for (int i = 0; i < STKSIZE; i++) push(0);
   p = 0; // not especially required
 }
@@ -228,9 +203,9 @@ void wiggle() {
   for (int i = 0; i < 20; i++) {
     digitalWrite(a, HIGH);
     defspeed();
-    delay(spd); // delay(100);
+    delay(spd);
     digitalWrite(a, LOW);
-    delay(spd); // delay(100);
+    delay(spd);
   }
 }
 
@@ -309,6 +284,7 @@ void rdumps() {
 /* Beginning of application words */
 
 
+// yours here ;)
 
 
 /* End of application words */
@@ -327,23 +303,18 @@ void nop() { }
 NAMED(_throw, "throw");
 void throw_();
 
-/* new forward declaration: execadrs */
 NAMED(_execadrs, "execadrs");
 void execadrs(); // execute at address
 
-/* new forward declaration: execXT */
 NAMED(_execXT, "execxt"); // execute from an xt (execution token) lookup
 void execXT();
 
-/* new forward declaration: xtTOword */
 NAMED(_xtTOword, "xt>word");
 void xtTOword();
 
-/* new forward declaration: EXECUTE */
 NAMED(_EXECUTE, "EXECUTE"); // ( xt -- ) action: execute
 void EXECUTE(); // ( xt -- ) action: execute
 
-/* new forward declaration: xxt */
 NAMED(_xxt, "xxt"); // alias for EXECUTE - execute execution token
 void xxt();
 
@@ -351,23 +322,22 @@ void xxt();
 NAMED(_words, "words");
 void words();
 
-/* new forward declaration: _entries */
 NAMED(_entries_, "entries");
 void _entries();
 
 /* table of names and function addresses in flash */
 const entry dictionary[] = {
   {_nop, nop},
-  {_throw, throw_},      // new word
-  {_xtTOword, xtTOword}, // new word
-  {_xtTOadrs, xtTOadrs}, // new word
-  {_execadrs, execadrs}, // new word
-  {_execXT, execXT},     // new word
-  {_EXECUTE, EXECUTE},   // new word
-  {_xxt, xxt},           // new word
+  {_throw, throw_},
+  {_xtTOword, xtTOword},
+  {_xtTOadrs, xtTOadrs},
+  {_execadrs, execadrs},
+  {_execXT, execXT},
+  {_EXECUTE, EXECUTE},
+  {_xxt, xxt},
   {_words, words},
-  {_tick, tick},         // new word
-  {_entries_, _entries}, // new word
+  {_tick, tick},
+  {_entries_, _entries},
   {_drop, drop},
   {_dup, dup},
   {_back, back},
@@ -394,29 +364,25 @@ const entry dictionary[] = {
   {_wiggle, wiggle},
   {_dumpr, rdumps},
   {_speed, speed},
-  {_nopp, nopp} // new word to pad dictionary
+  {_nopp, nopp} // to pad dictionary
 };
 
 /* Number of words in the dictionary */
 const int entries = sizeof dictionary / sizeof dictionary[0];
 
-/* new word: xt>adrs */
 void xtTOadrs() { // ( xt -- addrs )
   func function;
-  // must be reflected at top of source
-  // where the struct is
   int plc = pop();
-  unsigned int adxrs; // REEXAMINE if adxrs cannot be adrs -- why uniqueness
+  unsigned int adxrs;
   function = (func) pgm_read_word(&dictionary[plc].function);
   push((unsigned int) function);
   int a = pop();
   push(a - 1);
 }
 
-/* new word for xt execution */
 void execadrs() { // ( adrs -- ) action: execute at adrs
   int a = pop();  // an address of a word's execution token
-  push(a + 1);    // alignment (why?)
+  push(a + 1);    // alignment - THUMB2 consequence per C.H. Ting, iirc - 30 Sep 2020
   func function = ((func) pop());
   function();
   // fix bottom of stack so that
@@ -425,14 +391,12 @@ void execadrs() { // ( adrs -- ) action: execute at adrs
   // starts to look like forth, doesn't it.
 }
 
-/* new word for xt execution */
 // execute from an xt (execution token) lookup
 void execXT() { // ( xt -- ) action: execute    XT exec - the EXECUTE word
   xtTOadrs();  // ( xt -- addrs )
   execadrs();  // ( adrs -- ) action: execute at adrs
 }
 
-/* new alias for new word 'execXT' */
 void EXECUTE() { // ( xt -- ) action: execute
   execXT();
 }
@@ -451,7 +415,6 @@ void words() {
   }
 }
 
-/* new word: entries */
 /* How many words are in the dictionary? */
 void _entries() {
   int a;
@@ -459,12 +422,10 @@ void _entries() {
   push(a);
 }
 
-/* new word: throw */
 void throw_() {
   Serial.print("\r\n        THROW:  -1 \r\n");
 }
 
-/* new word: xtTOword */
 /* Find an xt of a word in the dictionary, returning its name */
 void xtTOword() { // ( xt -- ) print: the words's name from the dictionary
   int i = pop();
@@ -504,7 +465,6 @@ int number() {
 
 char ch;
 
-/* newly modified word: ok */
 void ok() {
   if (crlfstate == -1) {
     Serial.print(" ok\r\n");
@@ -513,7 +473,6 @@ void ok() {
   // ORIG:  // if (ch == '\r') Serial.println("ok");
 }
 
-/* new word: printing */
 void printing() {
   if (int(ch) == 13) {
     crlfstate = -1; // raise crlfstate TRUE
@@ -527,16 +486,14 @@ void printing() {
   }
 }
 
-/* newly modified function: reading */
 /* Incrementally read command line from serial port */
-/* new modifications support backspacing and other increased functionality */
+/* support backspacing and other increased functionality */
 byte reading() {
   if (!Serial.available()) return 1;
   ch = Serial.read();
-  printing(); // new function new call
-              // alternate: Serial.print(ch); // char-by-char input, echo
+  printing(); // alternate: Serial.print(ch); // char-by-char input, echo
   if (ch == '\n') {
-    Serial.print("\r\n"); // echo
+    Serial.print("\r\n");
     return 1;
   }
   if (ch == '\r') return 0;
@@ -556,7 +513,6 @@ byte reading() {
   return 1;
 }
 
-/* newly modified function: readword */
 /* Block on reading the command line from serial port */
 /* then echo each word */
 void readword() {
@@ -567,35 +523,15 @@ void readword() {
   //  Serial.print(" ");
 }
 
-/* newly modified function: runword */
 /* Run a word via its name */
-/* new modification to support xt and tick */
-
-/* has a new stack effect:
-
-   old: ( ? -- ? )
-   new: ( ? -- ? n ) // push(place);
-
-   TODO:
-
-   stack effects management
-
-   'place' is pushed to the stack, but
-    only on some execution paths.  That's incorrect.
-
-*/
-
+/* support xt and tick */
 void runword() {
   int place = locate();
   if (tickstate == -1) {
     tickstate = 0;
-    push(place); // aha - our xt // NEW STACK EFFECT
+    push(place);
     return;
   }
-
-
-
-  /* new error-check: discipline 'place' */
   if ((place != 0) & (place < (entries - 1))) {
     dictionary[place].function();
     ok();
@@ -610,7 +546,6 @@ void runword() {
 }
 
 /* Arduino main setup and loop */
-
 void setup() {
   Serial.begin(38400);
   while (!Serial);
@@ -623,4 +558,5 @@ void loop() {
   readword();
   runword();
 }
-
+// revised: 30 September 2020
+// END.
