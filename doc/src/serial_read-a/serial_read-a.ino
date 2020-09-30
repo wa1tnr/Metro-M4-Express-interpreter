@@ -176,6 +176,7 @@ char ch;
 void ok() {
   if (crlfstate == -1) {
     Serial.print(" ok\r\n");
+    Serial.print(" DEBUG: saw crlfstate == -1 here.\r\n");
     crlfstate = 0;
   }
   // ORIG:  // if (ch == '\r') Serial.println("ok");
@@ -199,7 +200,11 @@ void printing() {
 byte reading() {
   if (!Serial.available()) return 1;
   ch = Serial.read();
-  printing(); // alternate: Serial.print(ch); // char-by-char input, echo
+
+  // Serial.print(ch); // char-by-char input, echo
+  // printing();
+  printing();
+
   if (ch == '\n') {
     Serial.print("\r\n");
     return 1;
@@ -229,26 +234,18 @@ void readword() {
   while (reading());
 }
 
-/* Run a word via its name */
-/* support xt and tick */
-void runword() {
-  ok();
-  // Serial.println("?");
-}
-
 /* Arduino main setup and loop */
 void setup() {
   Serial.begin(38400);
   while (!Serial);
-  Serial.println ("rev 30 Sep aab");
+  Serial.println ("rev 30 Sep aac 2b");
   Serial.println ("Forth-like interpreter:");
-  // words();
   Serial.println();
 }
 
 void loop() {
   readword();
-  runword();
+  ok(); // runword();
 }
 // revised: 30 September 2020
 // END.
